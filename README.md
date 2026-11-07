@@ -32,10 +32,6 @@ java -cp out Main            # הרצת התוכנית
 java -cp out TestRunner      # הרצת הבדיקות
 ```
 
-## הפרטים שלי
-
-שם: YOUR NAME HERE
-
 <!-- בשלב 7 מחליפים את YOUR NAME HERE בשם שלכם -->
 
 ## התקדמות
