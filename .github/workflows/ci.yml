@@ -1,0 +1,38 @@
+# Runs on every push and pull request:
+# compiles src/ + tests/ and runs the course TestRunner.
+# A red X means: compile error or a check that exists but is wrong.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:            # keep this job name: it is the "required check" for branch protection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Make sure there is code to build
+        run: |
+          if ! ls src/*.java >/dev/null 2>&1; then
+            echo "::error::No .java files in src/ yet. Create src/Main.java (step 1)."
+            echo "### No Java files in src/ yet" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Compile
+        run: |
+          mkdir -p out
+          javac -Xlint:all -d out src/*.java tests/*.java
+
+      - name: Run tests
+        run: java -cp out TestRunner      # also writes the table to the job summary

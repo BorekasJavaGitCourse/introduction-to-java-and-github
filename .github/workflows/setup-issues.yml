@@ -1,0 +1,41 @@
+# GitHub does NOT copy Issues from a template repository (so every student repo needs this bootstrap).
+# This workflow creates the 7 step-issues (#1..#7) the first time someone pushes to main
+# in a repo that has no issues yet. It is safe to run again: it does nothing if issues exist.
+name: Setup issues
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: setup-issues
+  cancel-in-progress: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create issues #1..#7 if the repo has none
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh issue list --state all --limit 1 --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "Issues already exist - nothing to do."
+            exit 0
+          fi
+          for n in 1 2 3 4 5 6 7; do
+            f=".github/issues/step-$n.md"
+            title=$(head -n 1 "$f")
+            tail -n +2 "$f" > "$RUNNER_TEMP/body-$n.md"
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/body-$n.md"
+            sleep 2        # keeps the numbering in order: #1 = step 1, #2 = step 2 ...
+          done
